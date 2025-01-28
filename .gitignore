@@ -1,0 +1,13 @@
+**
+
+!src/
+!src/*
+
+!include/
+!include/*
+
+!CMakeLists.txt
+!start.sh
+
+.gitignore
+!.gitmodules
