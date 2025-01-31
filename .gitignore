@@ -6,9 +6,6 @@
 !include/
 !include/*
 
-!submodules/
-!submodules/*
-
 !CMakeLists.txt
 !start.sh
 

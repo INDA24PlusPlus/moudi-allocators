@@ -1,19 +1,18 @@
 #pragma once
-#include <stddef.h>
 #include <unistd.h>
-#include <dlfcn.h>
 
-#define ARENA_ALLOCATOR
+#define POOL_ALLOCATOR
+#define offsetof(T, el) ((size_t) &((T *)0)->el)
 
-#ifdef ARENA_ALLOCATOR
-#include "arena.h"
+#ifdef POOL_ALLOCATOR
+#include "pool.h"
 #endif
 
 #ifdef MY_ALLOCATOR
 #include "my_allocator.h"
 #endif
 
-void ** malloc(size_t size);
-void ** calloc(size_t n, size_t size);
-void ** realloc(void ** ptr, size_t new_size);
-void free(void ** ptr);
+void * malloc(size_t size);
+void * calloc(size_t n, size_t size);
+void * realloc(void * ptr, size_t new_size);
+void free(void * ptr);
