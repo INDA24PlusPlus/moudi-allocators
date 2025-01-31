@@ -1,7 +1,7 @@
 #pragma once
 #include <unistd.h>
 
-#define POOL_ALLOCATOR
+#define MY_ALLOCATOR
 #define offsetof(T, el) ((size_t) &((T *)0)->el)
 
 #ifdef POOL_ALLOCATOR

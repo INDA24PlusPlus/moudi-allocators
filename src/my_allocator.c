@@ -53,7 +53,7 @@ void print_block(_my_alloc_block * block, size_t index) {
     println("Block: [addr=%p, type=%s, index=%d, size=%d]", &block->data, IS_FREE(*block) ? "Free" : "Used", index, GET_BLOCK_SIZE(index));
 }
 
-void my_alloc_loop_over_blocks() {
+void my_alloc_print_blocks() {
     println("======");
     size_t index = 0;
     _my_alloc_block * block = GET_BLOCK_AT_INDEX(index);
@@ -67,7 +67,7 @@ void my_alloc_loop_over_blocks() {
 
 void my_alloc_grow(size_t min_blocks_capacity) {
     size_t delta = ARENA_CAPACITY;
-    while (delta < min_blocks_capacity) { delta *= GROWTH_SPEED; }
+    while (delta < min_blocks_capacity) { delta *= GROWTH_SPEED; } // make sure that the we grow to support our new block
     my_alloc.end_of_heap = sbrk(delta * BLOCK_ALIGNMENT);
 }
 
@@ -81,7 +81,7 @@ void * my_alloc_mark_free_block(size_t index, size_t size) {
     } else if (old_block->next_index < next_index) {
         println("Allocator error: Trying to use more than available in free block");
         _exit(1);
-    } else if (next_index < old_block->next_index) {
+    } else if (next_index < old_block->next_index) { // New block doesn't consume whole free block: add a new free block after
         _my_alloc_block * free_block = GET_BLOCK_AT_INDEX(next_index);
         free_block->next_index = old_block->next_index;
         free_block->prev_index = index;
@@ -170,15 +170,15 @@ void * my_alloc_realloc(void * ptr, size_t new_size) {
         _exit(1);
     }
 
+    // find the block index of the ptr
     size_t index;
-
     if (block != my_alloc.start) {
         index = GET_BLOCK_AT_INDEX(block->prev_index)->next_index;
     } else {
         index = 0;
     }
 
-    const size_t old_capacity = GET_BLOCK_AVAILABLE_SIZE(index);
+    const size_t old_capacity = GET_BLOCK_AVAILABLE_SIZE(index); // ptr block data capacity
 
     if (new_size <= old_capacity) {
         return ptr;
@@ -205,21 +205,25 @@ void my_alloc_free(void * ptr) {
     char is_last_block = GET_BLOCK_AT_INDEX(my_alloc.last_block) == block;
     my_alloc.occupied_blocks -= 1;
 
+    // Merge if block after is a free block
     _my_alloc_block * next = GET_BLOCK_AT_INDEX(block->next_index);
     if (IS_FREE(*next)) {
         block->next_index = next->next_index;
         is_joined = 1;
     }
 
+    // Merge if block before is a free block
     _my_alloc_block * prev = GET_BLOCK_AT_INDEX(block->prev_index);
     if (IS_FREE(*prev)) {
         prev->next_index = block->next_index;
         is_joined = 1;
     }
+
     if (!is_joined) {
         my_alloc.free_blocks += 1;
     }
 
+    // Update last block if the freed block was the last block
     if (is_last_block) {
         if (IS_FREE(*prev)) {
             my_alloc.last_block = prev->prev_index;

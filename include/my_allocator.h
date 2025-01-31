@@ -1,7 +1,7 @@
 #pragma once
 #include <unistd.h>
 
-void my_alloc_loop_over_blocks();
+void my_alloc_print_blocks();
 
 void * my_alloc_malloc(size_t size);
 

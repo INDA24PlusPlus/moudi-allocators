@@ -3,27 +3,43 @@
 
 #include "alloc.h"
 #include "fmt.h"
-#include "pool.h"
+#include "my_allocator.h"
 #include "timer.h"
 #include <string.h>
 #include <time.h>
 
 #define BUF_SIZE 10000
+#define MAX_MALLOCED 10000
 #define RAND_RANGE(start, end) ((long)(((double) rand() / RAND_MAX) * (end - start)) + start)
 
-int main() {
-    char buf[] = "Hello, World! This is me, Zimon!";
-    const size_t size = sizeof(buf) /sizeof(char);
+void * buf[BUF_SIZE] = {0};
 
+int main() {
     start_timer();
 
-    Pool pool = pool_init();
-    char * ptr1 = pool_malloc(&pool, 1);
-    memcpy(ptr1, buf, size);
-    char * ptr2 = pool_malloc(&pool, size);
+    for (size_t i = 0; i < BUF_SIZE; ++i) {
+        println("%d", i);
+        if (buf[i] == NULL) {
+            buf[i] = malloc(RAND_RANGE(1, MAX_MALLOCED));
+        }
 
-    memcpy(ptr2, buf, size);
-    println("Buf: \"%s\"", buf);
+        if (RAND_RANGE(1, 50) == 1) {
+            size_t new_index = RAND_RANGE(i / 2, i);
+            if (buf[i] == NULL) {
+                continue;
+            }
+
+            i = new_index;
+            free(buf[i]);
+            buf[i] = NULL;
+            i -= 1;
+        }
+    }
+
+    for (size_t i = 0; i < BUF_SIZE; ++i) {
+        println("%d) %p", i, buf[i]);
+        free(buf[i]);
+    }
 
     double execution_time = stop_timer();
     printf("Time: %.3fms\n", execution_time);
